@@ -134,6 +134,28 @@ const AdminPage: React.FC = () => {
     return <LoginPage onLogin={handleLoginSuccess} />;
   }
 
+  // Generator: Create unique random number
+  const handleGenerateNumber = () => {
+    let attempts = 0;
+    let generatedNum = "";
+
+    // Get all order numbers from today (active + archived + completed) 
+    // Actually, we check ALL current orders to be safe for uniqueness
+    const existingNumbers = new Set(orders.map(o => o.pickupNumber));
+
+    do {
+      // Generate random 4-digit number (1000 - 9999)
+      generatedNum = Math.floor(1000 + Math.random() * 9000).toString();
+      attempts++;
+    } while (existingNumbers.has(generatedNum) && attempts < 100);
+
+    if (attempts >= 100) {
+      alert("Konnte keine eindeutige Nummer generieren. Bitte manuell eingeben.");
+    } else {
+      setNewOrderNumber(generatedNum);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 min-h-screen">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
@@ -190,15 +212,25 @@ const AdminPage: React.FC = () => {
         <>
           {/* Input Area */}
           <form onSubmit={handleAddOrder} className="mb-12">
-            <div className="flex gap-4">
-              <input
-                type="text"
-                value={newOrderNumber}
-                onChange={(e) => setNewOrderNumber(e.target.value)}
-                placeholder="Auftragsnummer eingeben..."
-                className="flex-1 bg-white border border-gray-200 rounded-2xl px-6 py-4 text-xl font-bold focus:outline-none focus:ring-4 focus:ring-[#99bc1c]/20 transition-all shadow-sm"
-                autoFocus
-              />
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={newOrderNumber}
+                  onChange={(e) => setNewOrderNumber(e.target.value)}
+                  placeholder="Auftragsnummer..."
+                  className="flex-1 bg-white border border-gray-200 rounded-2xl px-6 py-4 text-xl font-bold focus:outline-none focus:ring-4 focus:ring-[#99bc1c]/20 transition-all shadow-sm"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={handleGenerateNumber}
+                  className="bg-gray-100/50 text-gray-600 px-4 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all border border-gray-200"
+                  title="Zufällige Nummer generieren"
+                >
+                  🎲 <span className="hidden sm:inline">Generator</span>
+                </button>
+              </div>
               <button
                 type="submit"
                 disabled={!newOrderNumber.trim()}
