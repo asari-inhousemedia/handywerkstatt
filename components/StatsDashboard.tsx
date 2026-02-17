@@ -30,11 +30,7 @@ const StatsDashboard: React.FC<StatsProps> = ({ orders }) => {
         const total = currentOrders.length;
         const completed = currentOrders.filter(o => o.status === OrderStatus.ARCHIVED || o.status === OrderStatus.READY).length;
 
-        // Revenue simulation (assuming average ticket size if not tracked)
-        // To make this real, we'd need a 'price' field in Order
-        const estimatedRevenue = total * 79; // Example avg price 79€
-
-        return { total, completed, estimatedRevenue, currentOrders };
+        return { total, completed, currentOrders };
     }, [orders, timeframe]);
 
     const chartData = useMemo(() => {
@@ -88,7 +84,7 @@ const StatsDashboard: React.FC<StatsProps> = ({ orders }) => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Aufträge Gesamt</div>
                     <div className="text-4xl font-black text-gray-900">{stats.total}</div>
@@ -96,13 +92,6 @@ const StatsDashboard: React.FC<StatsProps> = ({ orders }) => {
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Abgeschlossen</div>
                     <div className="text-4xl font-black text-[#99bc1c]">{stats.completed}</div>
-                </div>
-                {/* Placeholder for Revenue - can be enabled if price is added */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Est. Umsatz (Ø)</div>
-                    <div className="text-4xl font-black text-gray-900 flex items-center gap-1">
-                        <span className="text-xl text-gray-400">€</span> {stats.estimatedRevenue.toLocaleString()}
-                    </div>
                 </div>
             </div>
 

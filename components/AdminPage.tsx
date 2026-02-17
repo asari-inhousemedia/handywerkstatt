@@ -19,8 +19,10 @@ const AdminPage: React.FC = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'stats' | 'reset' | null>(null);
 
-  // Check auth persistence (optional, simple session)
+  // Check auth persistence (optional)
   useEffect(() => {
     const session = sessionStorage.getItem('admin_auth');
     if (session === 'true') setIsAuthenticated(true);
@@ -29,24 +31,51 @@ const AdminPage: React.FC = () => {
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
     sessionStorage.setItem('admin_auth', 'true');
+    setShowLoginModal(false);
+
+    // Execute pending action after login
+    if (pendingAction === 'stats') setShowStats(true);
+    if (pendingAction === 'reset') handleDailyReset();
+
+    setPendingAction(null);
+  };
+
+  const handleRequirement = (action: 'stats' | 'reset') => {
+    if (isAuthenticated) {
+      if (action === 'stats') setShowStats(!showStats);
+      // if (action === 'reset') handleDailyReset(); // Reset is handled directly in button for now to avoid auto-trigger on re-render/login
+    } else {
+      setPendingAction(action);
+      setShowLoginModal(true);
+    }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     sessionStorage.removeItem('admin_auth');
+    setShowStats(false);
   };
 
   const loadOrders = useCallback(async () => {
-    if (!isAuthenticated) return;
     const data = await storageService.getOrders();
     setOrders(data);
-  }, [isAuthenticated]);
+  }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      loadOrders();
-    }
-  }, [isAuthenticated, loadOrders]);
+    loadOrders();
+
+    // Subscribe to realtime updates for order list
+    const subscription = supabase
+      .channel('public:orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        loadOrders();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [loadOrders]);
 
   const handleAddOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,53 +88,35 @@ const AdminPage: React.FC = () => {
 
   const handleUpdateStatus = async (id: string, status: OrderStatus) => {
     await storageService.updateStatus(id, status);
-    loadOrders();
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Auftrag endgültig löschen? (Das entfernt ihn auch aus der Statistik!)')) {
       await storageService.deleteOrder(id);
-      loadOrders();
     }
   };
 
-  // REPLACED: Daily reset now archives instead of deletes
   const handleDailyReset = async () => {
-    const input = window.prompt("Sicherheitscode für Tagesreset eingeben:");
-    if (!input) return;
-
-    setIsResetting(true);
-
-    const { data, error } = await supabase
-      .from("settings")
-      .select("value")
-      .eq("key", "daily_reset_code")
-      .single();
-
-    if (error || !data) {
-      alert("Fehler beim Prüfen des Codes.");
-      console.error(error);
-      setIsResetting(false);
-      return;
-    }
-
-    if (data.value !== input) {
-      alert("Falscher Code. Reset abgebrochen.");
-      setIsResetting(false);
-      return;
-    }
+    if (!isAuthenticated) return; // double check
 
     const ok = window.confirm("Tagesabschluss durchführen? Alle aktuellen Aufträge werden ins ARCHIV verschoben (Statistik bleibt erhalten).");
-    if (!ok) {
-      setIsResetting(false);
-      return;
-    }
+    if (!ok) return;
 
+    setIsResetting(true);
     await storageService.archiveAllOrders();
     alert("Tagesabschluss erfolgreich! Alle Aufträge sind nun archiviert.");
     loadOrders();
     setIsResetting(false);
   };
+
+  const initiateDailyReset = () => {
+    if (isAuthenticated) {
+      handleDailyReset();
+    } else {
+      setPendingAction('reset');
+      setShowLoginModal(true);
+    }
+  }
 
   const filteredOrders = useMemo(() => {
     return orders
@@ -123,9 +134,21 @@ const AdminPage: React.FC = () => {
       .sort((a, b) => b.updatedAt - a.updatedAt);
   }, [orders, showArchived, searchTerm]);
 
-  // Render Login Page if not authenticated
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLoginSuccess} />;
+
+  if (showLoginModal) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl relative w-full max-w-md">
+          <button
+            onClick={() => { setShowLoginModal(false); setPendingAction(null); }}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold"
+          >
+            ✕ SCHLIESSEN
+          </button>
+          <LoginPage onLogin={handleLoginSuccess} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -141,11 +164,11 @@ const AdminPage: React.FC = () => {
 
         <div className="flex flex-wrap gap-3 items-center">
           <button
-            onClick={() => setShowStats(!showStats)}
+            onClick={() => handleRequirement('stats')}
             className={`px-5 py-3 text-sm font-bold rounded-2xl transition-all shadow-sm border ${showStats ? 'bg-gray-800 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
               }`}
           >
-            {showStats ? 'Zurück zur Übersicht' : '📊 Statistik öffnen'}
+            {showStats ? 'Zurück zur Übersicht' : '📊 Statistik (Admin)'}
           </button>
 
           <button
@@ -156,19 +179,21 @@ const AdminPage: React.FC = () => {
           </button>
 
           <button
-            onClick={handleDailyReset}
+            onClick={initiateDailyReset}
             disabled={isResetting}
             className="px-6 py-3 text-sm font-black text-white bg-red-600 hover:bg-red-700 rounded-2xl transition-all shadow-lg"
           >
-            Tagesabschluss
+            Tagesabschluss (Admin)
           </button>
 
-          <button
-            onClick={handleLogout}
-            className="text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-wider ml-2"
-          >
-            Logout
-          </button>
+          {isAuthenticated && (
+            <button
+              onClick={handleLogout}
+              className="text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-wider ml-2"
+            >
+              Logout
+            </button>
+          )}
         </div>
       </header>
 
