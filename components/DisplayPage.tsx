@@ -57,11 +57,11 @@ const DisplayPage: React.FC = () => {
       <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 flex flex-col min-h-0 pr-0 lg:pr-6 lg:border-r lg:border-white/10">
           <h2 className="text-white text-3xl md:text-5xl font-black uppercase mb-4">Abholbereit</h2>
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
             {groupedOrders.ready.map(order => (
-              <div key={order.id} className="bg-[#99bc1c] p-4 md:p-6 rounded-3xl shadow-2xl flex flex-col justify-center">
-                <div className="text-black/70 text-xs font-black uppercase tracking-widest text-center mb-1">Auftragsnummer</div>
-                <div className="text-black font-black text-center" style={{ fontSize: 'clamp(2.5rem, 6vw, 6rem)' }}>
+              <div key={order.id} className="bg-[#99bc1c] p-4 rounded-3xl shadow-xl flex flex-col justify-center items-center aspect-[4/3] relative overflow-hidden group">
+                <div className="text-black/60 text-[10px] font-black uppercase tracking-widest text-center mb-0 absolute top-4">Auftragsnummer</div>
+                <div className="text-black font-black text-center text-6xl md:text-7xl break-all leading-none pt-4">
                   {order.pickupNumber}
                 </div>
               </div>
@@ -71,11 +71,11 @@ const DisplayPage: React.FC = () => {
 
         <div className="lg:col-span-4 flex flex-col min-h-0 pl-0 lg:pl-6">
           <h2 className="text-white text-3xl md:text-5xl font-black uppercase mb-4">In Arbeit</h2>
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))]">
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
             {groupedOrders.repairing.map(order => (
-              <div key={order.id} className="bg-amber-500/10 border border-amber-500/20 p-3 md:p-4 rounded-2xl text-center flex flex-col justify-center">
-                <div className="text-amber-500/80 text-[10px] font-black uppercase tracking-widest mb-1">Auftragsnummer</div>
-                <div className="text-amber-500 font-black text-center" style={{ fontSize: 'clamp(1.6rem, 4vw, 3rem)' }}>
+              <div key={order.id} className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl text-center flex flex-col justify-center items-center aspect-square relative overflow-hidden">
+                <div className="text-amber-500/60 text-[9px] font-black uppercase tracking-widest mb-0 absolute top-3">Auftragsnummer</div>
+                <div className="text-amber-500 font-black text-center text-4xl md:text-5xl break-all leading-none pt-3">
                   {order.pickupNumber}
                 </div>
               </div>
