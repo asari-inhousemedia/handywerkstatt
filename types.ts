@@ -11,6 +11,7 @@ export interface Order {
   pickupNumber: string;
   status: OrderStatus;
   updatedAt: number;
+  createdAt: number;
 }
 
 export type AuthState = {

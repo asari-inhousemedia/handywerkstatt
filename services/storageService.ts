@@ -23,6 +23,7 @@ export const storageService = {
       pickupNumber: o.pickup_number,
       status: o.status as OrderStatus,
       updatedAt: o.updated_at,
+      createdAt: o.created_at || o.updated_at, // Fallback for old records
     }));
   },
 
@@ -31,6 +32,7 @@ export const storageService = {
       pickup_number: pickupNumber,
       status: OrderStatus.REPAIRING,
       updated_at: Date.now(),
+      created_at: Date.now(),
     });
 
     if (error) console.error("addOrder error:", error);
@@ -49,4 +51,25 @@ export const storageService = {
     const { error } = await supabase.from("orders").delete().eq("id", id);
     if (error) console.error("deleteOrder error:", error);
   },
+
+  // New function for archiving/resetting instead of deleting
+  async archiveAllOrders(): Promise<void> {
+    // Fetch all non-archived orders
+    const { data: orders } = await supabase
+      .from("orders")
+      .select("id")
+      .neq('status', OrderStatus.ARCHIVED);
+
+    if (!orders || orders.length === 0) return;
+
+    const ids = orders.map(o => o.id);
+
+    // Update them to ARCHIVED
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: OrderStatus.ARCHIVED, updated_at: Date.now() })
+      .in('id', ids);
+
+    if (error) console.error("archiveAllOrders error:", error);
+  }
 };
