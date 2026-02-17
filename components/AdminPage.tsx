@@ -80,7 +80,7 @@ const AdminPage: React.FC = () => {
     const { error: delError } = await supabase
       .from("orders")
       .delete()
-      .neq("id", "");
+      .gt("id", "00000000-0000-0000-0000-000000000000");
 
     if (delError) {
       alert("Fehler beim Löschen: " + delError.message);
@@ -206,8 +206,8 @@ const AdminPage: React.FC = () => {
                 <button
                   onClick={() => handleUpdateStatus(order.id, OrderStatus.REPAIRING)}
                   className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${order.status === OrderStatus.REPAIRING
-                      ? 'bg-amber-500 text-white shadow-md'
-                      : 'text-gray-500 hover:bg-white/50'
+                    ? 'bg-amber-500 text-white shadow-md'
+                    : 'text-gray-500 hover:bg-white/50'
                     }`}
                 >
                   In Arbeit
@@ -215,8 +215,8 @@ const AdminPage: React.FC = () => {
                 <button
                   onClick={() => handleUpdateStatus(order.id, OrderStatus.READY)}
                   className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${order.status === OrderStatus.READY
-                      ? 'bg-[#99bc1c] text-white shadow-md'
-                      : 'text-gray-500 hover:bg-white/50'
+                    ? 'bg-[#99bc1c] text-white shadow-md'
+                    : 'text-gray-500 hover:bg-white/50'
                     }`}
                 >
                   Abholbereit
@@ -224,8 +224,8 @@ const AdminPage: React.FC = () => {
                 <button
                   onClick={() => handleUpdateStatus(order.id, OrderStatus.ARCHIVED)}
                   className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${order.status === OrderStatus.ARCHIVED
-                      ? 'bg-gray-800 text-white shadow-md'
-                      : 'text-gray-500 hover:bg-white/50'
+                    ? 'bg-gray-800 text-white shadow-md'
+                    : 'text-gray-500 hover:bg-white/50'
                     }`}
                 >
                   Archivieren

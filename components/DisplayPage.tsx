@@ -2,6 +2,12 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { storageService } from '../services/storageService.ts';
 import { Order, OrderStatus } from '../types.ts';
 import Logo from './Logo.tsx';
+import { createClient } from "@supabase/supabase-js";
+
+// Supabase
+const SUPABASE_URL = "https://ikdlhrrjingkrddwbmuu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_LKjR1Q0Lqf_ygoBuJVoumg_zr5IHLDG";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const DisplayPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -15,13 +21,29 @@ const DisplayPage: React.FC = () => {
 
   useEffect(() => {
     loadOrders();
+
+    const subscription = supabase
+      .channel('public:orders')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          loadOrders();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, [loadOrders]);
 
   const activeOrders = useMemo(() => orders.filter(o => o.status !== OrderStatus.ARCHIVED), [orders]);
 
   const groupedOrders = useMemo(() => {
-    const ready = activeOrders.filter(o => o.status === OrderStatus.READY).sort((a,b) => b.updatedAt - a.updatedAt);
-    const repairing = activeOrders.filter(o => o.status === OrderStatus.REPAIRING).sort((a,b) => b.updatedAt - a.updatedAt);
+    const ready = activeOrders.filter(o => o.status === OrderStatus.READY).sort((a, b) => b.updatedAt - a.updatedAt);
+    const repairing = activeOrders.filter(o => o.status === OrderStatus.REPAIRING).sort((a, b) => b.updatedAt - a.updatedAt);
     return { ready, repairing };
   }, [activeOrders]);
 
