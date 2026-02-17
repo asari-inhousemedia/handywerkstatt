@@ -8,7 +8,7 @@ const SUPABASE_KEY = "sb_publishable_LKjR1Q0Lqf_ygoBuJVoumg_zr5IHLDG";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 interface LoginPageProps {
-  onLogin: () => void;
+  onLogin: (role: 'ADMIN' | 'STAFF') => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
@@ -22,27 +22,30 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     setError('');
 
     try {
-      // Check password against database setting
+      // Fetch both passwords
       const { data, error } = await supabase
         .from("settings")
-        .select("value")
-        .eq("key", "admin_password")
-        .single();
+        .select("key, value")
+        .in("key", ["admin_password", "staff_password"]);
 
       if (error) throw error;
 
-      if (!data || data.value !== password) {
-        setError('Ungültiges Kennwort');
-        setLoading(false);
+      const adminPass = data?.find(s => s.key === 'admin_password')?.value;
+      const staffPass = data?.find(s => s.key === 'staff_password')?.value;
+
+      // Check Admin
+      if (adminPass && password === adminPass) {
+        onLogin('ADMIN');
         return;
       }
 
-      // Success
-      onLogin();
-    } catch (err) {
-      console.error(err);
-      // Fallback: Check against daily reset code if admin password not set or error
-      // This is a temporary fallback, ideally admin_password should be set
+      // Check Staff
+      if (staffPass && password === staffPass) {
+        onLogin('STAFF');
+        return;
+      }
+
+      // Fallback: Check daily_reset_code as Admin fallback (legacy support)
       const { data: resetData } = await supabase
         .from("settings")
         .select("value")
@@ -50,10 +53,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         .single();
 
       if (resetData && resetData.value === password) {
-        onLogin();
-      } else {
-        setError('Login fehlgeschlagen. Bitte prüfen Sie Ihre Verbindung.');
+        // If using reset code, assume ADMIN for now to not lock them out, 
+        // but ideally they should set an admin password.
+        onLogin('ADMIN');
+        return;
       }
+
+      setError('Ungültiges Kennwort');
+    } catch (err) {
+      console.error(err);
+      setError('Login Fehler. Bitte Verbindung prüfen.');
     } finally {
       setLoading(false);
     }
@@ -66,8 +75,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           <Logo className="h-16" />
         </div>
 
-        <h2 className="text-2xl font-black text-center text-gray-800 mb-2">Admin Login</h2>
-        <p className="text-gray-500 text-center mb-8 text-sm">Bitte authentifizieren Sie sich</p>
+        <h2 className="text-2xl font-black text-center text-gray-800 mb-2">Werkstatt Login</h2>
+        <p className="text-gray-500 text-center mb-8 text-sm">Mitarbeiter oder Admin Kennwort</p>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="relative">
@@ -78,7 +87,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Admin Kennwort"
+              placeholder="Kennwort eingeben"
               className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-[#99bc1c]/20 transition-all"
               autoFocus
             />
