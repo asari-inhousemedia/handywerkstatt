@@ -50,8 +50,19 @@ const DisplayPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-4 md:p-8 flex flex-col font-sans overflow-hidden">
       <header className="mb-6 flex flex-col md:flex-row justify-between items-center border-b border-white/5 pb-6 gap-6">
-        <Logo className="h-12 md:h-20" inverse={true} />
-        <DateTime />
+        <div className="flex-1 flex justify-start">
+          <Logo className="h-12 md:h-20" inverse={true} />
+        </div>
+
+        <div className="flex-[2] text-center">
+          <h1 className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 text-3xl md:text-5xl font-black uppercase tracking-widest drop-shadow-sm">
+            Ihr Auftragsstatus
+          </h1>
+        </div>
+
+        <div className="flex-1 flex justify-end">
+          <DateTime />
+        </div>
       </header>
 
       <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -84,8 +95,24 @@ const DisplayPage: React.FC = () => {
         </div>
       </main>
 
-      <div className="mt-3 text-center text-gray-700 text-[10px] font-black uppercase tracking-[0.5em]">
-        Sync: {lastUpdate.toLocaleTimeString()}
+      <div className="mt-auto pt-6 flex justify-between items-end px-2">
+        <div className="text-gray-700 text-[10px] font-black uppercase tracking-[0.5em]">
+          Sync: {lastUpdate.toLocaleTimeString()}
+        </div>
+
+        <div className="flex items-center gap-3 bg-white/5 px-3 py-2 rounded-xl backdrop-blur-sm border border-white/5">
+          <div className="text-right">
+            <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider leading-tight">Powered by</div>
+            <div className="text-blue-500 font-bold text-sm tracking-wide leading-tight">Inhouse Media</div>
+          </div>
+          <div className="h-10 w-10 bg-white p-0.5 rounded-lg overflow-hidden">
+            <img
+              src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://inhousee.de"
+              alt="Inhouse Media QR"
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
