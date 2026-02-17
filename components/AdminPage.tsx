@@ -109,6 +109,25 @@ const AdminPage: React.FC = () => {
     setIsResetting(false);
   };
 
+  const handleHardReset = async () => {
+    if (!isAuthenticated) return;
+
+    const confirm1 = window.confirm("⚠ WARNUNG: Möchten Sie wirklich ALLE DATEN LÖSCHEN?\n\nDies löscht sämtliche Aufträge aus der Datenbank. Auch die Statistik wird auf 0 gesetzt.\n\nDies kann NICHT rückgängig gemacht werden!");
+    if (!confirm1) return;
+
+    const confirm2 = window.prompt("Bitte geben Sie zur Bestätigung 'LÖSCHEN' ein:");
+    if (confirm2 !== 'LÖSCHEN') {
+      alert("Abgebrochen. Eingabe war nicht korrekt.");
+      return;
+    }
+
+    setIsResetting(true);
+    await storageService.deleteAllOrders();
+    alert("Datenbank wurde vollständig zurückgesetzt.");
+    loadOrders();
+    setIsResetting(false);
+  };
+
   const initiateDailyReset = () => {
     if (isAuthenticated) {
       handleDailyReset();
@@ -199,7 +218,7 @@ const AdminPage: React.FC = () => {
 
       {/* STATS VIEW */}
       {showStats ? (
-        <StatsDashboard orders={orders} />
+        <StatsDashboard orders={orders} onHardReset={handleHardReset} />
       ) : (
         <>
           {/* Input Area */}

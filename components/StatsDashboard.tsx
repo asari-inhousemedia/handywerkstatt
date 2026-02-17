@@ -5,11 +5,12 @@ import { Calendar, TrendingUp, DollarSign, Clock } from 'lucide-react';
 
 interface StatsProps {
     orders: Order[];
+    onHardReset: () => void;
 }
 
 const COLORS = ['#99bc1c', '#f59e0b', '#ef4444', '#1f2937'];
 
-const StatsDashboard: React.FC<StatsProps> = ({ orders }) => {
+const StatsDashboard: React.FC<StatsProps> = ({ orders, onHardReset }) => {
     const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'year'>('week');
 
     const stats = useMemo(() => {
@@ -144,6 +145,21 @@ const StatsDashboard: React.FC<StatsProps> = ({ orders }) => {
                             </div>
                         ))}
                     </div>
+                </div>
+            </div>
+
+            <div className="mt-12 pt-8 border-t border-red-100">
+                <div className="bg-red-50 p-6 rounded-2xl border border-red-200 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h3 className="text-red-800 font-bold mb-1">Gefahrenzone: Datenbank zurücksetzen</h3>
+                        <p className="text-red-600/80 text-sm">Diese Aktion löscht ALLE Aufträge (auch archivierte) unwiderruflich aus der Datenbank. Dies kann nicht rückgängig gemacht werden.</p>
+                    </div>
+                    <button
+                        onClick={onHardReset}
+                        className="whitespace-nowrap bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg active:scale-95"
+                    >
+                        ⚠ ALLES LÖSCHEN (HARD RESET)
+                    </button>
                 </div>
             </div>
         </div>

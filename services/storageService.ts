@@ -71,5 +71,15 @@ export const storageService = {
       .in('id', ids);
 
     if (error) console.error("archiveAllOrders error:", error);
+  },
+
+  // Hard Reset: Permanently delete ALL orders
+  async deleteAllOrders(): Promise<void> {
+    const { error } = await supabase
+      .from("orders")
+      .delete()
+      .gt("id", "00000000-0000-0000-0000-000000000000"); // Delete everything
+
+    if (error) console.error("deleteAllOrders error:", error);
   }
 };
