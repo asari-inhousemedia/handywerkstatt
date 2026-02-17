@@ -144,8 +144,8 @@ const AdminPage: React.FC = () => {
     const existingNumbers = new Set(orders.map(o => o.pickupNumber));
 
     do {
-      // Generate random 4-digit number (1000 - 9999)
-      generatedNum = Math.floor(1000 + Math.random() * 9000).toString();
+      // Generate random number up to 3 digits (1 - 999)
+      generatedNum = Math.floor(1 + Math.random() * 999).toString();
       attempts++;
     } while (existingNumbers.has(generatedNum) && attempts < 100);
 
