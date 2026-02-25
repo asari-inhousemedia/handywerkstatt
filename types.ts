@@ -2,8 +2,9 @@
 export enum OrderStatus {
   REPAIRING = 'In Reparatur',
   READY = 'Fertig / Abholbereit',
+  PICKED_UP = 'Abgeholt',
   FAILED = 'Nicht reparabel',
-  ARCHIVED = 'Abgeholt / Erledigt'
+  ARCHIVED = 'Archiviert'
 }
 
 export interface Order {

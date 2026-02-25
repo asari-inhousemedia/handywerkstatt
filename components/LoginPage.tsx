@@ -22,40 +22,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     setError('');
 
     try {
-      // Fetch both passwords
-      const { data, error } = await supabase
-        .from("settings")
-        .select("key, value")
-        .in("key", ["admin_password", "staff_password"]);
+      // Secure login via server-side function (passwords never leave the database)
+      const { data, error } = await supabase.rpc('check_login', {
+        input_password: password
+      });
 
       if (error) throw error;
 
-      const adminPass = data?.find(s => s.key === 'admin_password')?.value;
-      const staffPass = data?.find(s => s.key === 'staff_password')?.value;
-
-      // Check Admin
-      if (adminPass && password === adminPass) {
+      if (data === 'ADMIN') {
         onLogin('ADMIN');
         return;
       }
 
-      // Check Staff
-      if (staffPass && password === staffPass) {
+      if (data === 'STAFF') {
         onLogin('STAFF');
-        return;
-      }
-
-      // Fallback: Check daily_reset_code as Admin fallback (legacy support)
-      const { data: resetData } = await supabase
-        .from("settings")
-        .select("value")
-        .eq("key", "daily_reset_code")
-        .single();
-
-      if (resetData && resetData.value === password) {
-        // If using reset code, assume ADMIN for now to not lock them out, 
-        // but ideally they should set an admin password.
-        onLogin('ADMIN');
         return;
       }
 

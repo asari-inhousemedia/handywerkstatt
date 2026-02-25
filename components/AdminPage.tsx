@@ -64,13 +64,28 @@ const AdminPage: React.FC = () => {
     }
   }, [authRole, loadOrders]);
 
+  // Active order numbers (everything except archived) — no duplicates allowed
+  const activeOrderNumbers = useMemo(() => {
+    return new Set(
+      orders
+        .filter(o => o.status !== OrderStatus.ARCHIVED)
+        .map(o => o.pickupNumber)
+    );
+  }, [orders]);
+
   const handleAddOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newOrderNumber.trim()) {
-      await storageService.addOrder(newOrderNumber.trim());
-      setNewOrderNumber('');
-      loadOrders();
+    const num = newOrderNumber.trim();
+    if (!num) return;
+
+    if (activeOrderNumbers.has(num)) {
+      alert(`Auftragsnummer "${num}" ist bereits aktiv! Bitte eine andere Nummer verwenden.`);
+      return;
     }
+
+    await storageService.addOrder(num);
+    setNewOrderNumber('');
+    loadOrders();
   };
 
   const handleUpdateStatus = async (id: string, status: OrderStatus) => {
@@ -84,12 +99,19 @@ const AdminPage: React.FC = () => {
   };
 
   const handleDailyReset = async () => {
-    const ok = window.confirm("Tagesabschluss durchführen? Alle aktuellen Aufträge werden ins ARCHIV verschoben.");
+    const pickedUpCount = orders.filter(o => o.status === OrderStatus.PICKED_UP).length;
+    const activeCount = orders.filter(o => o.status === OrderStatus.REPAIRING || o.status === OrderStatus.READY).length;
+
+    const ok = window.confirm(
+      `Tagesabschluss durchführen?\n\n` +
+      `${pickedUpCount} abgeholte Aufträge werden archiviert.\n` +
+      `${activeCount} offene Aufträge (In Arbeit / Abholbereit) bleiben bestehen.`
+    );
     if (!ok) return;
 
     setIsResetting(true);
     await storageService.archiveAllOrders();
-    alert("Tagesabschluss erfolgreich!");
+    alert(`Tagesabschluss erfolgreich! ${pickedUpCount} Aufträge archiviert.`);
     loadOrders();
     setIsResetting(false);
   };
@@ -134,20 +156,15 @@ const AdminPage: React.FC = () => {
     return <LoginPage onLogin={handleLoginSuccess} />;
   }
 
-  // Generator: Create unique random number
+  // Generator: Create unique random number (only checks against active orders)
   const handleGenerateNumber = () => {
     let attempts = 0;
     let generatedNum = "";
 
-    // Get all order numbers from today (active + archived + completed) 
-    // Actually, we check ALL current orders to be safe for uniqueness
-    const existingNumbers = new Set(orders.map(o => o.pickupNumber));
-
     do {
-      // Generate random number up to 3 digits (1 - 999)
       generatedNum = Math.floor(1 + Math.random() * 999).toString();
       attempts++;
-    } while (existingNumbers.has(generatedNum) && attempts < 100);
+    } while (activeOrderNumbers.has(generatedNum) && attempts < 100);
 
     if (attempts >= 100) {
       alert("Konnte keine eindeutige Nummer generieren. Bitte manuell eingeben.");
@@ -305,13 +322,13 @@ const AdminPage: React.FC = () => {
                       Abholbereit
                     </button>
                     <button
-                      onClick={() => handleUpdateStatus(order.id, OrderStatus.ARCHIVED)}
-                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${order.status === OrderStatus.ARCHIVED
-                        ? 'bg-gray-800 text-white shadow-md'
+                      onClick={() => handleUpdateStatus(order.id, OrderStatus.PICKED_UP)}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${order.status === OrderStatus.PICKED_UP
+                        ? 'bg-blue-600 text-white shadow-md'
                         : 'text-gray-500 hover:bg-white/50'
                         }`}
                     >
-                      Archivieren
+                      Abgeholt
                     </button>
                   </div>
 

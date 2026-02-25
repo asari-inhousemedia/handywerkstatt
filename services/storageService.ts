@@ -52,13 +52,13 @@ export const storageService = {
     if (error) console.error("deleteOrder error:", error);
   },
 
-  // New function for archiving/resetting instead of deleting
+  // Tagesabschluss: Only archive orders that have been picked up
   async archiveAllOrders(): Promise<void> {
-    // Fetch all non-archived orders
+    // Only fetch PICKED_UP orders for archiving
     const { data: orders } = await supabase
       .from("orders")
       .select("id")
-      .neq('status', OrderStatus.ARCHIVED);
+      .eq('status', OrderStatus.PICKED_UP);
 
     if (!orders || orders.length === 0) return;
 
