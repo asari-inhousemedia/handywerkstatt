@@ -160,7 +160,7 @@ const AdminPage: React.FC = () => {
     <div className="max-w-7xl mx-auto p-4 md:p-8 min-h-screen">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
         <div className="flex flex-col gap-2">
-          <Logo className="h-10 md:h-12" />
+          <Logo className="h-10 md:h-12" variant="full" />
           <p className="text-gray-500 font-medium ml-1 flex items-center gap-2">
             <span className="w-2 h-2 bg-[#99bc1c] rounded-full animate-pulse"></span>
             Werkstatt-System Admin

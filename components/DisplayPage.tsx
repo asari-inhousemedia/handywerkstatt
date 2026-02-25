@@ -49,24 +49,18 @@ const DisplayPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-4 md:p-8 flex flex-col font-sans overflow-hidden">
-      <header className="mb-6 flex flex-col md:flex-row justify-between items-center border-b border-white/5 pb-6 gap-6">
-        <div className="flex-1 flex justify-start">
-          <Logo className="h-12 md:h-20" inverse={true} />
-        </div>
-
-        <div className="flex-[2] text-center">
-          <h1 className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 text-3xl md:text-5xl font-black uppercase tracking-widest drop-shadow-sm">
-            Ihr Auftragsstatus
-          </h1>
-        </div>
-
-        <div className="flex-1 flex justify-end">
+      <header className="mb-6 border-b border-white/5 pb-6">
+        <div className="flex justify-between items-center mb-4">
+          <Logo className="h-10 md:h-14" variant="full" inverse={true} />
           <DateTime />
         </div>
+        <h1 className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 text-3xl md:text-5xl font-black uppercase tracking-widest drop-shadow-sm text-center">
+          Ihr Auftragsstatus
+        </h1>
       </header>
 
       <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 flex flex-col min-h-0 pr-0 lg:pr-6 lg:border-r lg:border-white/10">
+        <div className="lg:col-span-6 flex flex-col min-h-0 pr-0 lg:pr-6 lg:border-r lg:border-white/10">
           <h2 className="text-white text-3xl md:text-5xl font-black uppercase mb-4">Abholbereit</h2>
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
             {groupedOrders.ready.map(order => (
@@ -80,7 +74,7 @@ const DisplayPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="lg:col-span-4 flex flex-col min-h-0 pl-0 lg:pl-6">
+        <div className="lg:col-span-6 flex flex-col min-h-0 pl-0 lg:pl-6">
           <h2 className="text-white text-3xl md:text-5xl font-black uppercase mb-4">In Arbeit</h2>
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
             {groupedOrders.repairing.map(order => (

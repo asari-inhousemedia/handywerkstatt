@@ -72,7 +72,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 md:p-12">
         <div className="flex justify-center mb-8">
-          <Logo className="h-16" />
+          <Logo className="h-16" variant="icon" />
         </div>
 
         <h2 className="text-2xl font-black text-center text-gray-800 mb-2">Werkstatt Login</h2>
